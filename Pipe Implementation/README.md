@@ -8,7 +8,7 @@
 
 <h2>I/O Operation<h2>
 
-<list>Input - <strong>"Input.txt"</strong> which contain input text having extra spaces and with punctation mark etc,</list>
-<list>Output - <strong>"Output.txt"</strong></list>
+<li>Input - <strong>"Input.txt"</strong> which contain input text having extra spaces and with punctation mark etc, </li>
+<li>Output - <strong>"Output.txt"</strong></li>
 
 Author : "Aditya Kumawat"
