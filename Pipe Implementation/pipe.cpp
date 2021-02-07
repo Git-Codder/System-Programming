@@ -4,8 +4,10 @@
 #include<sys/types.h>
 #include<sys/wait.h>
 
+#define buffsize 1000
 using namespace std;
 
+//Utility Function 
 string removeExtraSpaces(string &str){
 	bool first = true,ok = true;
 	string s = "";
@@ -49,6 +51,9 @@ string changeFirstLetter(string &str){
 				ok = false;
 			}
 			else{
+				if(str[i]>='A' && str[i]<='Z'){
+					ok = false;
+				}
 				s += str[i];
 			}
 		}
@@ -73,11 +78,39 @@ string stream_as_string(ifstream& stm){
     return str_stm.str() ;
 }
 
+
+
+//Conversion Fuction (string <=> char array)
+string charToStr(char s[]){
+	int i=0;
+	string str;
+	while(s[i]!='\0'){
+		str += s[i]; 
+		i++;
+	}
+	return str;
+}
+
+void strToChar(char s[],string str){
+	int i,n = str.length();
+	for(i=0;i<n;++i){
+		s[i] = (char)str[i];
+	}
+	s[i] = '\0';
+	return ;
+}
+
+
+
+//Process Functions
 int firstProcess(int fd[][2], int &n){
+
 	//close 1st and 3rd to communicate in 2nd pipe
 	int i,j,k;
 	int r = 0;
 	int w = 1;
+
+	//closing all anothter pipes
 	for(i=0;i<n;++i){
 		for(j=0;j<2;++j){
 			if(!((i==r && j==0)||(i==w && j==1))){
@@ -86,18 +119,20 @@ int firstProcess(int fd[][2], int &n){
 		}
 	}
 
-	string str ;
-	if(read(fd[r][0],&str,100) < 0){
+	char str[buffsize];
+	if(read(fd[r][0],str,sizeof(str)) < 0){
 		cout<<"An Error has been occured in reading pipe msg"<<endl;
 		cout<<"1*";
 		return 3;
 	}
 
-	cout<<str<<endl;
-	cout<<"In First Process...."<<endl;
-	str = removeExtraSpaces(str);
+	string strs = charToStr(str);
+	strs = removeExtraSpaces(strs);
+	strToChar(str,strs);
+	// cout<<strs<<endl;
+	// cout<<"In First Process...."<<endl;
 
-	if(write(fd[w][1],&str,sizeof(str)) < 0){
+	if(write(fd[w][1],str,sizeof(str)) < 0){
 		cout<<"An Error has been occured in writing msg in pipe"<<endl;
 		cout<<"2*";
 		return 4;
@@ -110,10 +145,13 @@ int firstProcess(int fd[][2], int &n){
 }
 
 int secondProcess(int fd[][2], int &n){
+
 	//close 1st and 2nd to communicate in 3rd pipe
 	int i,j,k;
 	int r = 1;
 	int w = 2;
+
+	//close all another pipes
 	for(i=0;i<n;++i){
 		for(j=0;j<2;++j){
 			if(!((i==r && j==0)||(i==w && j==1))){
@@ -122,18 +160,20 @@ int secondProcess(int fd[][2], int &n){
 		}
 	}
 
-	string str ;
-	if(read(fd[r][0],&str,100) < 0){
+	char str[buffsize];
+	if(read(fd[r][0],str,sizeof(str)) < 0){
 		cout<<"An Error has been occured in reading pipe msg"<<endl;
 		cout<<"3*"<<endl;
 		return 6;
 	}
 
-	cout<<"In Second Process...."<<endl;
-	str = changeFirstLetter(str);
-	cout<<str<<endl;
+	string strs = charToStr(str);
+	strs = changeFirstLetter(strs);
+	strToChar(str,strs);
+	// cout<<strs<<endl;
+	// cout<<"In Second Process...."<<endl;
 
-	if(write(fd[w][1],&str,sizeof(str)) < 0){
+	if(write(fd[w][1],str,sizeof(str)) < 0){
 		cout<<"An Error has been occured in writing msg in pipe"<<endl;
 		cout<<"4*"<<endl;
 		return 7;
@@ -145,135 +185,9 @@ int secondProcess(int fd[][2], int &n){
 	return 0;
 }
 
-// int parentProcess(int fd[][2], int &n){
-// 	//Perfroming action in main Process(1st Process)
-// 	int i,j,k;
-// 	int r = 2;
-// 	int w = 0;
-// 	for(i=0;i<n;++i){
-// 		for(j=0;j<2;++j){
-// 			if(i!=k){
-// 				close(fd[i][j]);
-// 			}
-// 		}
-// 	}
 
-// 	fstream fs;
-// 	fs.open("input.txt"	,ios::in);
 
-// 	string str = "";
-// 	// str = stream_as_string(fs);
-// 	while (fs.good())
-//         getline(fs, str); 
-// 	fs.close();
-
-// 	if(write(fd[w][1],&str,sizeof(str)) < 0){
-// 		cout<<"An Error has been occured in writing msg in pipe"<<endl;
-// 		cout<<"5*"<<endl;
-// 		return 8;
-// 	}
-	
-// 	// wait(NULL);
-// 	// waitpid(p1,NULL,0);
-// 	// waitpid(p2,NULL,0);
-
-// 	if(read(fd[r][0],&str,100) < 0){
-// 		cout<<"An Error has been occured in reading pipe msg"<<endl;
-// 		cout<<"6*"<<endl;
-// 		return 9;
-// 	}
-
-// 	close(fd[w][1]);
-// 	close(fd[r][0]);
-
-// 	fs.open("output.txt",ios::out);
-// 	fs<<str;
-// 	fs.close();
-
-// 	// waitpid(p1,NULL,0);
-// 	// waitpid(p2,NULL,0);
-// 	return 0;
-// }
-
-int parentProcess(int fd[][2], int &n, string &str){
-	//Perfroming action in main Process(1st Process)
-	int i,j,k;
-	int r = 2;
-	int w = 0;
-	for(i=0;i<n;++i){
-		for(j=0;j<2;++j){
-			if(!((i==r && j==0 || i==w && j==1))){
-				close(fd[i][j]);
-			}
-		}
-	}
-	
-	if(write(fd[w][1],&str,sizeof(str)) < 0){
-		cout<<"An Error has been occured in writing msg in pipe"<<endl;
-		cout<<"5*"<<endl;
-		return 8;
-	}
-	else{
-		cout<<"First Half Part of Parent Process"<<endl;
-		close(fd[w][1]);
-		//creating 1st Child Process(2nd Process)
-		pid_t p1 = fork();
-		if(p1<0){
-			cout<<"An Error has beeen occured in creating process using frok"<<endl;
-			return 2;
-		}
-		else if(p1==0){
-			wait(NULL);
-			cout<<"lo aa gye hum.."<<endl;
-			int n = 3;
-			int ret = firstProcess(fd,n);
-			return ret;
-		}
-		else{
-			//Creating 2nd child Process (3rd Process)
-			pid_t p2 = fork();
-			if(p2<0){
-				cout<<"An Error has beeen occured in creating process using frok"<<endl;
-				return 5;
-			}
-			else if(p2==0){
-				wait(NULL);
-				cout<<"ja rhe h hum.."<<endl;
-				int n = 3;
-				int ret = secondProcess(fd,n);
-				return ret;
-			}
-			else{
-
-				for(i=0;i<n;++i){
-					for(j=0;j<2;++j){
-						if(!(i==r && j==0 || i==w && j==1)){
-							close(fd[i][j]);
-						}
-					}
-				}
-
-				cout<<"Second Half Part of Parent Process"<<endl;
-				string st;
-				if(read(fd[r][0],&st,100) < 0){
-				cout<<"An Error has been occured in reading pipe msg"<<endl;
-				cout<<"6*"<<endl;
-				return 9;
-				}
-				close(fd[r][0]);
-
-				fstream fs;
-				fs.open("output.txt",ios::out);
-				fs<<st;
-				cout<<"sttttttt"<<endl;
-				fs.close();
-
-				return 0;
-			}
-		}
-	}
-}
-
+//I/O operation Functions
 string getInput(){
 	fstream fs;
 	fs.open("input.txt"	,ios::in);
@@ -285,6 +199,13 @@ string getInput(){
 	fs.close();
 
 	return str;
+}
+
+void setOuput(string strs){
+	fstream fs;
+	fs.open("output.txt",ios::out);
+	fs<<strs;
+	fs.close();
 }
 
 int main(int argc, char **argv){
@@ -305,9 +226,78 @@ int main(int argc, char **argv){
 		}
 	}
 
-	string str = getInput();
+	//creating 1st Child Process(2nd Process)
+	pid_t p1 = fork();
+	if(p1<0){
+		cout<<"An Error has beeen occured in creating process using frok"<<endl;
+		return 2;
+	}
 
-	int ret = parentProcess(fd,n,str);
+	if(p1==0){
 
-	return ret;
+		//In First Child Process
+		int n = 3;
+		int ret = firstProcess(fd,n);
+		return ret;
+	}
+	
+	//Creating 2nd child Process (3rd Process)
+	pid_t p2 = fork();
+	if(p2<0){
+		cout<<"An Error has beeen occured in creating process using frok"<<endl;
+		return 5;
+	}
+	if(p2==0){
+		
+		//In Second Child Process
+		int n = 3;
+		int ret = secondProcess(fd,n);
+		return ret;
+	}
+
+
+	//Perfroming action in main Process(1st Process)
+	int r = 2;
+	int w = 0;
+	for(i=0;i<n;++i){
+		for(j=0;j<2;++j){
+			if(!((i==r && j==0 || i==w && j==1))){
+				close(fd[i][j]);
+			}
+		}
+	}
+
+
+	// getting Input From File
+	string strs = getInput();
+
+
+	char str[buffsize];
+	strToChar(str,strs);
+
+	if(write(fd[w][1],str,sizeof(str)) < 0){
+		cout<<"An Error has been occured in writing msg in pipe"<<endl;
+		cout<<"5*"<<endl;
+		return 8;
+	}
+
+	if(read(fd[r][0],str,sizeof(str)) < 0){
+		cout<<"An Error has been occured in reading pipe msg"<<endl;
+		cout<<"6*"<<endl;
+		return 9;
+	}
+
+	close(fd[w][1]);
+	close(fd[r][0]);
+
+	strs = charToStr(str);
+
+	//Save Output in File 
+	setOuput(strs);
+
+	//Wating for compelete to child process
+	waitpid(p1,NULL,0);
+	waitpid(p2,NULL,0);
+
+	return 0;
 }
