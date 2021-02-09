@@ -6,9 +6,10 @@
 <p>This Programm shows the communication b/w 3 process one parent and 2 child process. parente process take input from file and give to first child prcess which remove the extra blank space and give spave after punctuation mark and output of this process take as input in second child process and it change the first letter of every word in capital letter. After all this happen it goes back to parent process and than it write back in file </p>
 <br>
 
-<h2>I/O Operation<h2>
+<h2>I/O Operation</h2>
 
-<list>Input - <strong>"Input.txt"</strong> which contain input text having extra spaces and with punctation mark etc,</list>
-<list>Output - <strong>"Output.txt"</strong></list>
+<li>Input - <strong>"Input.txt"</strong> which contain input text having extra spaces and with punctation mark etc, </li>
+<li>Output - <strong>"Output.txt"</strong></li>
 
-Author : "Aditya Kumawat"
+<br>
+<p>Author : "Aditya Kumawat"</p>
