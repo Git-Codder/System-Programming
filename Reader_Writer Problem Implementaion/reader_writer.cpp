@@ -17,7 +17,7 @@ int readerCount ; // count of the reader at the time of they reading data
 
 //Reader will read
 void* read(void* y){
-    int x = 50;
+    int x = *((int*)y);
     while(x--){
 
         //wait  method calling
@@ -58,14 +58,14 @@ void* read(void* y){
 
 //Writer will write
 void* write(void* y){
-    int x = 20;
+    int x = *((int*)y);
     while(x--){
         //lock the writer mutex to prevent another writer to write on data
         //critical section Enter
         mutex_writer.lock();
         
         cout<<"I am writing as writer number : #"<<this_thread::get_id()<<"...."<<endl;
-        sleep(1);
+        // sleep(1);
 
         mutex_writer.unlock();
         //critical section Exit
@@ -77,6 +77,8 @@ void* write(void* y){
 int main(int argc, char* argv[]){
 
     int readerCount = 0;
+    int x = 3;
+    int y = 3;
 
     //reader semaphore initialisation 
     sem_init(&sem_r,0,3);
@@ -91,12 +93,12 @@ int main(int argc, char* argv[]){
     //creating threads
     for(int i=0;i<max(readerNumber,writerNumber);++i){
         if(i<=readerNumber){
-            if(pthread_create(&reader[i], NULL, &read, NULL)!=0){
+            if(pthread_create(&reader[i], NULL, &read, &x)!=0){
                 cout<<"Something error has been occured in creating thred for reader"<<endl;
             }
         }
         if(i<=writerNumber){
-           if(pthread_create(&writer[i], NULL, &write, NULL)!=0){
+           if(pthread_create(&writer[i], NULL, &write, &y)!=0){
                 cout<<"Something error has been occured in creating thred for reader"<<endl;
             }
         }
